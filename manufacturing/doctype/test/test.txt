@@ -1,0 +1,36 @@
+[
+ {
+  "creation": "2013-11-22 10:44:45", 
+  "docstatus": 0, 
+  "modified": "2013-11-22 10:44:45", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "test/.####", 
+  "doctype": "DocType", 
+  "document_type": "Master", 
+  "issingle": 1, 
+  "module": "Manufacturing", 
+  "name": "__common__"
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "test", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "role": "Administrator", 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "test"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

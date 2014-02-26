@@ -49,6 +49,10 @@ def execute_daily():
 	# check reorder level
 	from stock.utils import reorder_item
 	run_fn(reorder_item)
+	
+	#ldap profile check
+	from  controllers.ldap_profile_check import check_profiles_daily
+	run_fn(check_profiles_daily)	
 		
 	# scheduler error
 	scheduler.report_errors()
@@ -57,11 +61,19 @@ def execute_weekly():
 	from setup.doctype.backup_manager.backup_manager import take_backups_weekly
 	run_fn(take_backups_weekly)
 
+	#ldap profile check
+	from  controllers.ldap_profile_check import check_profiles_weekly
+	run_fn(check_profiles_weekly)
+
 def execute_monthly():
-	pass
+	#ldap profile check
+	from  controllers.ldap_profile_check import check_profiles_monthly
+	run_fn(check_profiles_monthly)
 
 def execute_hourly():
-	pass
+	#ldap profile check
+	from  controllers.ldap_profile_check import check_profiles_hourly
+	run_fn(check_profiles_hourly)
 	
 def run_fn(fn):
 	try:

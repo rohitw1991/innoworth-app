@@ -2,7 +2,7 @@
  {
   "creation": "2013-05-21 16:16:39", 
   "docstatus": 0, 
-  "modified": "2013-09-12 18:34:54", 
+  "modified": "2014-02-25 15:03:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -137,6 +137,19 @@
   "oldfieldtype": "Date", 
   "reqd": 1, 
   "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "customer_name", 
+  "fieldtype": "Link", 
+  "label": "Customer Name", 
+  "options": "Customer"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "contact", 
+  "fieldtype": "Data", 
+  "label": "Customer Contact Details"
  }, 
  {
   "doctype": "DocField", 

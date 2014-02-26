@@ -232,6 +232,8 @@ items = [
 		"route": "Form/Backup Manager", "type": "Link", "icon": "icon-cloud" },
 	{ "title": "System Scheduler Errors", 
 		"route": "Report/Scheduler Log", "type": "Link", "icon": "icon-exclamation-sign" },
+	{ "title": "LDAP Settings", 
+		"route": "Form/LDAP Settings", "type": "Link", "icon": "icon-sitemap" },
 ]
 
 @webnotes.whitelist(allow_roles=["System Manager"])

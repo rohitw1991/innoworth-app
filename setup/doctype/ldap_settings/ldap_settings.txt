@@ -1,0 +1,73 @@
+[
+ {
+  "creation": "2014-01-24 12:24:46", 
+  "docstatus": 0, 
+  "modified": "2014-01-24 12:24:46", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "doctype": "DocType", 
+  "issingle": 1, 
+  "module": "Setup", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "LDAP Settings", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "LDAP Settings", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "role": "Administrator", 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "LDAP Settings"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "ldap_server", 
+  "fieldtype": "Data", 
+  "label": "Ldap Server"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "user_dn", 
+  "fieldtype": "Data", 
+  "label": "User Dn"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "base_dn", 
+  "fieldtype": "Data", 
+  "label": "Base Dn"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "pwd", 
+  "fieldtype": "Password", 
+  "label": "Password"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "profile_check", 
+  "fieldtype": "Select", 
+  "label": "Profile Check", 
+  "options": "\nHourly\nDaily\nWeekly\nMonthly"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]
