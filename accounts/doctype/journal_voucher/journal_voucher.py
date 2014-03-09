@@ -1,14 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
 # License: GNU General Public License v3. See license.txt
 
 from __future__ import unicode_literals
 import webnotes
 
-from webnotes.utils import cint, cstr, flt, fmt_money, formatdate, getdate
-from webnotes.model.doc import addchild
+from webnotes.utils import cint, cstr, flt, fmt_money, formatdate, getdate,auth,document_attach
+from webnotes.model.doc import addchild,Document
 from webnotes.model.bean import getlist
+import os
 from webnotes import msgprint, _
 from setup.utils import get_company_currency
+from webnotes.utils.html_jv import html_jv
 
 from controllers.accounts_controller import AccountsController
 
@@ -340,6 +344,45 @@ class DocType(AccountsController):
 			return webnotes.conn.sql("""select name, credit_to, outstanding_amount 
 				from `tabPurchase Invoice` where docstatus = 1 and company = %s 
 				and outstanding_amount > 0 %s""" % ('%s', cond), self.doc.company)
+
+	def on_update(self):
+		html=""
+		g=0
+		for k in getlist(self.doclist,"entries"):
+			g=g+1
+			html+='<tr><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 5%;">'+cstr(g)+'</td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 32%;">'+k.account+'</td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 23%;">'+k.cost_center+'</td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 10%;"><div style="text-align: right">₹ '+cstr(k.debit)+'</div></td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 10%;"><div style="text-align: right">₹ '+cstr(k.balance)+'</div></td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 10%;"><div style="text-align: right">₹ '+cstr(k.credit)+'</div></td></tr>'
+		a=html_jv({"posting_date":self.doc.posting_date,"bank_voucher":self.doc.voucher_type,"total_debit":cstr(self.doc.total_debit),"total_credit":cstr(self.doc.total_credit),"reference_no":self.doc.cheque_no,"reference_date":self.doc.cheque_date,"table":html,"remark":self.doc.remark,"name":self.doc.name})
+                attach_file(a,[self.doc.name,"Account/Kirana","Journal Voucher"])
+			
+		
+def attach_file(a,path_data):
+
+                #path=self.file_name(path_data[0])
+                #html_file= open(path[0],"w")
+                import io
+                name=path_data[0]
+                path=cstr(path_data[0]).replace("/","")
+                f = io.open("files/"+path+".html", 'w', encoding='utf8')
+                f.write(a)
+                f.close()
+
+                s=auth()
+                if s[0]=="Done":
+                        dms_path=webnotes.conn.sql("select value from `tabSingles` where doctype='LDAP Settings' and field='dms_path'",as_list=1)
+			webnotes.errprint(["files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload"])
+                        document_attach("files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload")
+                        file_attach=Document("File Data")
+                        file_attach.file_name="files/"+path+".html"
+                        file_attach.attached_to_doctype=path_data[2]
+                        file_attach.file_url=dms_path[0][0]+path_data[1]+"/"+path+".html"
+                        file_attach.attached_to_name=name
+                        file_attach.save()
+                        #os.remove("files/"+path+".html")
+                        return s[0]
+                else:
+                        return s[1]
+
+
 
 @webnotes.whitelist()
 def get_default_bank_cash_account(company, voucher_type):

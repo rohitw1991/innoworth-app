@@ -2,7 +2,7 @@
  {
   "creation": "2014-01-24 12:24:46", 
   "docstatus": 0, 
-  "modified": "2014-01-24 12:24:46", 
+  "modified": "2014-03-07 22:06:54", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -66,6 +66,24 @@
   "fieldtype": "Select", 
   "label": "Profile Check", 
   "options": "\nHourly\nDaily\nWeekly\nMonthly"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "dms_details", 
+  "fieldtype": "Section Break", 
+  "label": "Dms Details"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "dms_server", 
+  "fieldtype": "Data", 
+  "label": "Dms Server"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "dms_path", 
+  "fieldtype": "Data", 
+  "label": "Dms Path"
  }, 
  {
   "doctype": "DocPerm"

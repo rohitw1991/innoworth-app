@@ -1,15 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
 # License: GNU General Public License v3. See license.txt
 
 from __future__ import unicode_literals
 import webnotes
 
-from webnotes.utils import cstr, flt, cint
+from webnotes.utils import cstr, flt, cint, nowdate,nowtime,auth,document_attach
+from utilities.transaction_base import get_default_address, get_address_display
 from webnotes.model.bean import getlist
 from webnotes.model.code import get_obj
 from webnotes import msgprint, _
+from webnotes.model.doc import Document, addchild
 import webnotes.defaults
+import datetime
 from stock.utils import update_bin
+from webnotes.utils.html_file import html_data
+import os
 
 from controllers.buying_controller import BuyingController
 class DocType(BuyingController):
@@ -164,6 +171,70 @@ class DocType(BuyingController):
 						
 		self.bk_flush_supp_wh(sl_entries)
 		self.make_sl_entries(sl_entries)
+
+	def create_dn(self):
+		dn=Document('Delivery Note')
+		dn.customer=self.doc.customer
+		dn.customer_name=webnotes.conn.get_value("Customer",self.doc.customer,"customer_name")		
+		dn.company='InnoWorth'
+                dn.conversion_rate=1.00
+		dn.posting_date=nowdate()
+		dn.posting_time=nowtime()
+		dn.customer_address=webnotes.conn.get_value("Address",{"customer":self.doc.customer},"name")
+		dn.address_display=get_address_display(dn.customer_address)
+		dn.price_list_currency='INR'
+                dn.currency='INR'
+		dn.docstatus=1
+		dn.status="Submitted"
+                dn.selling_price_list='Standard Selling'
+                dn.fiscal_year=webnotes.conn.get_value("Global Defaults", None, "current_fiscal_year")
+		dn.save()
+		j=0
+		html=""
+		net_tot=0.00
+		for s in getlist(self.doclist,"purchase_receipt_details"):
+			j=j+1
+			dni=Document("Delivery Note Item")
+			dni.item_code=s.item_code
+			dni.item_name=s.item_name
+			dni.description=s.description
+			dni.qty=s.qty
+			dni.ref_rate=webnotes.conn.get_value("Item Price",{"item_code":dni.item_code,"price_list":"Standard Selling"},"ref_rate")
+                        dni.export_rate=webnotes.conn.get_value("Item Price",{"item_code":dni.item_code,"price_list":"Standard Selling"},"ref_rate")
+			dni.export_amount=cstr(flt(s.qty)*flt(dni.ref_rate))
+			net_tot=cstr(flt(net_tot)+flt(dni.export_amount))
+			dni.warehouse=s.warehouse
+			dni.stock_uom=s.uom
+			dni.serial_no=s.serial_no
+			dni.parent=dn.name
+			dni.save()
+			update_bin=("update tabBin set actual_qty=actual_qty-"+cstr(dni.qty)+" and projected_qty=projected_qty-"+cstr(dni.qty)+" where item_code='"+dni.item_code+"' and warehouse='"+dni.warehouse+"'")
+			html+=("<tr><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'>"+cstr(j)+"</td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'>"+cstr(dni.item_code)+"</td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'>"+cstr(dni.description)+"</td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;text-align:right;'><div>"+cstr(dni.qty)+"</div></td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'>"+cstr(dni.stock_uom)+"</td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'><div style='text-align:right'>₹ "+cstr(dni.ref_rate)+"</div></td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'><div style='text-align: right'>₹ "+cstr(dni.export_amount)+"</div></td></tr>")
+			stl=Document("Stock Ledger Entry")
+			stl.item_code=s.item_code
+			stl.stock_uom=s.uom
+			stl.serial_no=s.serial_no
+			stl.warehouse=s.warehouse
+			stl.posting_date=nowdate()
+			stl.voucher_type="Delivery Note"
+			stl.voucher_no=dn.name
+			stl.voucher_detail_no=dni.name
+			stl.is_cancelled="No"
+			stl.fiscal_year=webnotes.conn.get_value("Global Defaults", None, "current_fiscal_year")
+			stl.actual_qty=cstr(s.qty)
+			qty=webnotes.conn.sql("select qty_after_transaction from `tabStock Ledger Entry` where item_code='"+s.item_code+"' and warehouse='"+s.warehouse+"' order by name desc limit 1",as_list=1)
+			stl.qty_after_transaction=cstr(flt(qty[0][0])-flt(s.qty))
+			stl.save()
+			if dni.serial_no:
+				for s in dni.serial_no:
+					update=webnotes.conn.sql("update `tabSerial No` set status='Delivered', warehouse=(select name from tabCustomer where 1=2) where name='"+s+"'")
+
+		dn_=Document("Delivery Note",dn.name)
+		dn_.net_total_export=cstr(net_tot)
+                dn_.grand_total_export=cstr(net_tot)
+                dn_.rounded_total_export=cstr(net_tot)
+		a=html_data({"posting_date":datetime.datetime.strptime(nowdate(),'%Y-%m-%d').strftime('%d/%m/%Y'),"due_date":"","customer_name":dn.customer_name,"net_total":dn_.net_total_export,"grand_total":dn_.grand_total_export,"rounded_total":dn_.rounded_total_export,"table_data":html,"date_1":"Posting Date","date_2":"","doctype":"Delivery Note","doctype_no":dn.name,"company":dn.company,"addr_name":"Address","address":dn.address_display,"tax_detail":""})
+                attach_file(a,[dn.name,"Selling/Kirana","Delivery Note"])
 				
 	def update_ordered_qty(self):
 		stock_items = self.get_stock_items()
@@ -252,6 +323,7 @@ class DocType(BuyingController):
 		purchase_controller.update_last_purchase_rate(self, 1)
 		
 		self.make_gl_entries()
+		self.create_dn()
 
 	def check_next_docstatus(self):
 		submit_rv = webnotes.conn.sql("select t1.name from `tabPurchase Invoice` t1,`tabPurchase Invoice Item` t2 where t1.name = t2.parent and t2.purchase_receipt = '%s' and t1.docstatus = 1" % (self.doc.name))
@@ -300,7 +372,34 @@ class DocType(BuyingController):
 		gl_entries = super(DocType, self).get_gl_entries(warehouse_account, against_stock_account)
 		return gl_entries
 		
-	
+
+def attach_file(a,path_data):
+
+                #path=self.file_name(path_data[0])
+                #html_file= open(path[0],"w")
+                import io
+                name=path_data[0]
+                path=cstr(path_data[0]).replace("/","")
+                f = io.open("files/"+path+".html", 'w', encoding='utf8')
+                f.write(a)
+                f.close()
+
+                s=auth()
+                if s[0]=="Done":
+                        dms_path=webnotes.conn.sql("select value from `tabSingles` where doctype='LDAP Settings' and field='dms_path'",as_list=1)
+                        document_attach("files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload")
+                        file_attach=Document("File Data")
+                        file_attach.file_name="files/"+path+".html"
+                        file_attach.attached_to_doctype=path_data[2]
+                        file_attach.file_url=dms_path[0][0]+path_data[1]+"/"+path+".html"
+                        file_attach.attached_to_name=name
+                        file_attach.save()
+                        os.remove("files/"+path+".html")
+                        return s[0]
+                else:
+                        return s[1]
+
+
 @webnotes.whitelist()
 def make_purchase_invoice(source_name, target_doclist=None):
 	from webnotes.model.mapper import get_mapped_doclist

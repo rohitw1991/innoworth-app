@@ -2,7 +2,7 @@
  {
   "creation": "2013-06-11 14:26:44", 
   "docstatus": 0, 
-  "modified": "2013-09-10 10:50:50", 
+  "modified": "2014-02-28 12:51:59", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -64,6 +64,14 @@
   "report_hide": 0, 
   "reqd": 1, 
   "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "innoworth_id", 
+  "fieldtype": "Data", 
+  "hidden": 0, 
+  "label": "Innoworth Id", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 

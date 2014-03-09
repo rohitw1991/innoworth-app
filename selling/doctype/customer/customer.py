@@ -16,13 +16,13 @@ class DocType(TransactionBase):
 	def __init__(self, doc, doclist=[]):
 		self.doc = doc
 		self.doclist = doclist
-				
+	
 	def autoname(self):
 		cust_master_name = webnotes.defaults.get_global_default('cust_master_name')
 		if cust_master_name == 'Customer Name':
 			if webnotes.conn.exists("Supplier", self.doc.customer_name):
 				msgprint(_("A Supplier exists with same name"), raise_exception=1)
-			self.doc.name = self.doc.customer_name
+			self.doc.name = self.doc.customer_name +' - '+ self.doc.innoworth_id
 		else:
 			self.doc.name = make_autoname(self.doc.naming_series+'.#####')
 

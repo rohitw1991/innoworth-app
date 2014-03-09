@@ -2,7 +2,7 @@
  {
   "creation": "2013-05-21 16:16:39", 
   "docstatus": 0, 
-  "modified": "2013-10-11 13:20:13", 
+  "modified": "2014-03-08 13:37:32", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -27,6 +27,7 @@
   "permlevel": 0
  }, 
  {
+  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Purchase Receipt", 
@@ -34,7 +35,8 @@
   "parenttype": "DocType", 
   "permlevel": 0, 
   "read": 1, 
-  "report": 1
+  "report": 1, 
+  "write": 1
  }, 
  {
   "doctype": "DocType", 
@@ -93,6 +95,14 @@
   "in_list_view": 1, 
   "label": "Supplier Name", 
   "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "customer", 
+  "fieldtype": "Link", 
+  "label": "Customer", 
+  "options": "Customer", 
+  "reqd": 1
  }, 
  {
   "doctype": "DocField", 
@@ -811,29 +821,23 @@
  {
   "amend": 1, 
   "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "role": "Material Manager", 
-  "submit": 1, 
-  "write": 1
+  "submit": 1
  }, 
  {
   "amend": 1, 
   "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "role": "Material User", 
-  "submit": 1, 
-  "write": 1
+  "submit": 1
  }, 
  {
   "amend": 1, 
   "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "role": "Purchase User", 
-  "submit": 1, 
-  "write": 1
+  "submit": 1
  }, 
  {
   "doctype": "DocPerm", 
