@@ -138,7 +138,9 @@ class DocType():
 		si_=Document('Sales Invoice',si.name)
 		si_.net_total_export=cstr(total_amt)
                 si_.grand_total_export=cstr(total_amt)
+		si_.grand_total=cstr(total_amt)
                 si_.rounded_total_export=cstr(total_amt)
+		si_.outstanding_amount=cstr(total_amt)
 		si_.save()
 
                 data=[{"account":si.debit_to,"debit":si_.net_total_export,"credit":"0","against":"Sales - innow","against_voucher_type":"Sales Invoice","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":""},{"account":'Sales - innow',"debit":"0","credit":si_.net_total_export,"against":si.debit_to,"against_voucher_type":"","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":"Main - innow"}]
@@ -169,7 +171,9 @@ class DocType():
 					si.fiscal_year=webnotes.conn.get_value("Global Defaults", None, "current_fiscal_year")
 					si.net_total_export=cstr(r['net_total_export'])
                         		si.grand_total_export=cstr(r['grand_total_export'])
+					si.grand_total=cstr(r['grand_total_export'])
                         		si.rounded_total_export=cstr(r['rounded_total_export'])
+					si.outstanding_amount=cstr(r['net_total_export'])
 					si.docstatus=1	
 					update=sql("update `tabSales Order` set per_billed='100' where name='"+cstr(r['name'])+"'")
 					si.save()
@@ -217,6 +221,7 @@ class DocType():
 			gl.voucher_no=r['voucher_no']
 			gl.cost_center=r['cost_center']
 			gl.posting_date=nowdate()
+			gl.against_voucher=r['voucher_no']
 			gl.aging_date=nowdate()
 			gl.fiscal_year=webnotes.conn.get_value("Global Defaults",None,"current_fiscal_year")
 			gl.company='InnoWorth'
@@ -529,6 +534,7 @@ class DocType():
 					return ["","Done"]
 
 
+@webnotes.whitelist()
 def attach_file(a,path_data):
 
                 #path=self.file_name(path_data[0])
@@ -543,15 +549,19 @@ def attach_file(a,path_data):
                 s=auth()
                 if s[0]=="Done":
 			dms_path=webnotes.conn.sql("select value from `tabSingles` where doctype='LDAP Settings' and field='dms_path'",as_list=1)
-                        document_attach("files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload")
-                        file_attach=Document("File Data")
-                        file_attach.file_name="files/"+path+".html"
-                        file_attach.attached_to_doctype=path_data[2]
-                        file_attach.file_url=dms_path[0][0]+path_data[1]+"/"+path+".html"
-                        file_attach.attached_to_name=name
-                        file_attach.save()
-			os.remove("files/"+path+".html")
-                        return s[0]
+			check_status=sql("select file_url from `tabFile Data` where file_url='"+dms_path[0][0]+path_data[1]+"/"+path+".html"+"'",as_list=1)
+			if not check_status:
+                        	document_attach("files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload")
+                        	file_attach=Document("File Data")
+                        	file_attach.file_name="files/"+path+".html"
+                        	file_attach.attached_to_doctype=path_data[2]
+                        	file_attach.file_url=dms_path[0][0]+path_data[1]+"/"+path+".html"
+                        	file_attach.attached_to_name=name
+                        	file_attach.save()
+				os.remove("files/"+path+".html")
+                        	return s[0]
+			else:
+				return "File Already Exist"
                 else:
                         return s[1]
 

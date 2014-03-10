@@ -13,6 +13,7 @@ import os
 from webnotes import msgprint, _
 from setup.utils import get_company_currency
 from webnotes.utils.html_jv import html_jv
+from cgi_module.doctype.cgi.cgi import attach_file
 
 from controllers.accounts_controller import AccountsController
 
@@ -49,6 +50,7 @@ class DocType(AccountsController):
 		self.check_account_against_entries()
 		self.make_gl_entries()
 		self.check_credit_limit()
+		self.attach_jv_file()
 
 	def on_cancel(self):
 		from accounts.utils import remove_against_link_from_jv
@@ -345,43 +347,51 @@ class DocType(AccountsController):
 				from `tabPurchase Invoice` where docstatus = 1 and company = %s 
 				and outstanding_amount > 0 %s""" % ('%s', cond), self.doc.company)
 
-	def on_update(self):
+	def attach_jv_file(self):
+		pass
+	
 		html=""
 		g=0
+		
 		for k in getlist(self.doclist,"entries"):
 			g=g+1
 			html+='<tr><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 5%;">'+cstr(g)+'</td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 32%;">'+k.account+'</td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 23%;">'+k.cost_center+'</td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 10%;"><div style="text-align: right">₹ '+cstr(k.debit)+'</div></td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 10%;"><div style="text-align: right">₹ '+cstr(k.balance)+'</div></td><td style="border: 1px solid rgb(153, 153, 153); padding: 3px; vertical-align: top; word-wrap: break-word; width: 10%;"><div style="text-align: right">₹ '+cstr(k.credit)+'</div></td></tr>'
 		a=html_jv({"posting_date":self.doc.posting_date,"bank_voucher":self.doc.voucher_type,"total_debit":cstr(self.doc.total_debit),"total_credit":cstr(self.doc.total_credit),"reference_no":self.doc.cheque_no,"reference_date":self.doc.cheque_date,"table":html,"remark":self.doc.remark,"name":self.doc.name})
-                attach_file(a,[self.doc.name,"Account/Kirana","Journal Voucher"])
-			
 		
-def attach_file(a,path_data):
+                attach_file_test(a,[self.doc.name,"Buying/Kirana","Journal Voucher"])
 
-                #path=self.file_name(path_data[0])
-                #html_file= open(path[0],"w")
-                import io
+def attach_file_test(html_,path_data):
+	import easywebdav
+	a=webnotes.conn.sql("select value from `tabSingles` where doctype='LDAP Settings' and field='dms_server'",as_list=1)
+        if a:
+                webdav = easywebdav.connect(a[0][0],username='swapnil',password='swapnil')
+		import io
                 name=path_data[0]
                 path=cstr(path_data[0]).replace("/","")
                 f = io.open("files/"+path+".html", 'w', encoding='utf8')
-                f.write(a)
+                f.write(html_)
                 f.close()
 
                 s=auth()
                 if s[0]=="Done":
                         dms_path=webnotes.conn.sql("select value from `tabSingles` where doctype='LDAP Settings' and field='dms_path'",as_list=1)
-			webnotes.errprint(["files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload"])
-                        document_attach("files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload")
-                        file_attach=Document("File Data")
-                        file_attach.file_name="files/"+path+".html"
-                        file_attach.attached_to_doctype=path_data[2]
-                        file_attach.file_url=dms_path[0][0]+path_data[1]+"/"+path+".html"
-                        file_attach.attached_to_name=name
-                        file_attach.save()
-                        #os.remove("files/"+path+".html")
-                        return s[0]
+                        check_status=webnotes.conn.sql("select file_url from `tabFile Data` where file_url='"+dms_path[0][0]+path_data[1]+"/"+path+".html"+"'",as_list=1)
+                        if not check_status:
+				webdav.upload("files/"+path+".html",'/doxbox/OwlWebDav/index.php/'+path_data[1]+"/"+path+".html")
+                                file_attach=Document("File Data")
+                                file_attach.file_name="files/"+path+".html"
+                                file_attach.attached_to_doctype=path_data[2]
+                                file_attach.file_url=dms_path[0][0]+path_data[1]+"/"+path+".html"
+                                file_attach.attached_to_name=name
+                                file_attach.save()
+                                os.remove("files/"+path+".html")
+                                return "File Save Sucessfully"
+                        else:
+                                return "File Already Exist"
                 else:
                         return s[1]
-
+        else:
+                return ["Error","Server is not defined"]
 
 
 @webnotes.whitelist()

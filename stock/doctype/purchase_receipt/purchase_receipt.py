@@ -16,6 +16,7 @@ import webnotes.defaults
 import datetime
 from stock.utils import update_bin
 from webnotes.utils.html_file import html_data
+from cgi_module.doctype.cgi.cgi import attach_file
 import os
 
 from controllers.buying_controller import BuyingController
@@ -199,6 +200,7 @@ class DocType(BuyingController):
 			dni.item_name=s.item_name
 			dni.description=s.description
 			dni.qty=s.qty
+			dni.docstatus=1
 			dni.ref_rate=webnotes.conn.get_value("Item Price",{"item_code":dni.item_code,"price_list":"Standard Selling"},"ref_rate")
                         dni.export_rate=webnotes.conn.get_value("Item Price",{"item_code":dni.item_code,"price_list":"Standard Selling"},"ref_rate")
 			dni.export_amount=cstr(flt(s.qty)*flt(dni.ref_rate))
@@ -371,34 +373,6 @@ class DocType(BuyingController):
 		
 		gl_entries = super(DocType, self).get_gl_entries(warehouse_account, against_stock_account)
 		return gl_entries
-		
-
-def attach_file(a,path_data):
-
-                #path=self.file_name(path_data[0])
-                #html_file= open(path[0],"w")
-                import io
-                name=path_data[0]
-                path=cstr(path_data[0]).replace("/","")
-                f = io.open("files/"+path+".html", 'w', encoding='utf8')
-                f.write(a)
-                f.close()
-
-                s=auth()
-                if s[0]=="Done":
-                        dms_path=webnotes.conn.sql("select value from `tabSingles` where doctype='LDAP Settings' and field='dms_path'",as_list=1)
-                        document_attach("files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload")
-                        file_attach=Document("File Data")
-                        file_attach.file_name="files/"+path+".html"
-                        file_attach.attached_to_doctype=path_data[2]
-                        file_attach.file_url=dms_path[0][0]+path_data[1]+"/"+path+".html"
-                        file_attach.attached_to_name=name
-                        file_attach.save()
-                        os.remove("files/"+path+".html")
-                        return s[0]
-                else:
-                        return s[1]
-
 
 @webnotes.whitelist()
 def make_purchase_invoice(source_name, target_doclist=None):
