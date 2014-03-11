@@ -2,7 +2,7 @@
  {
   "creation": "2013-05-24 19:29:05", 
   "docstatus": 0, 
-  "modified": "2013-10-11 13:12:38", 
+  "modified": "2014-03-11 11:06:59", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -33,9 +33,7 @@
   "parent": "Sales Invoice", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
-  "read": 1, 
-  "report": 1
+  "read": 1
  }, 
  {
   "doctype": "DocType", 
@@ -1206,6 +1204,8 @@
   "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
+  "report": 1, 
   "role": "Accounts Manager", 
   "submit": 1, 
   "write": 1
@@ -1215,6 +1215,8 @@
   "cancel": 0, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
+  "report": 1, 
   "role": "Accounts User", 
   "submit": 1, 
   "write": 1
@@ -1222,6 +1224,15 @@
  {
   "doctype": "DocPerm", 
   "match": "customer", 
+  "permlevel": 0, 
+  "report": 1, 
   "role": "Customer"
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "permlevel": 1, 
+  "role": "All", 
+  "write": 1
  }
 ]

@@ -359,6 +359,18 @@ class DocType(AccountsController):
 		a=html_jv({"posting_date":self.doc.posting_date,"bank_voucher":self.doc.voucher_type,"total_debit":cstr(self.doc.total_debit),"total_credit":cstr(self.doc.total_credit),"reference_no":self.doc.cheque_no,"reference_date":self.doc.cheque_date,"table":html,"remark":self.doc.remark,"name":self.doc.name})
 		
                 attach_file_test(a,[self.doc.name,"Buying/Kirana","Journal Voucher"])
+		'''
+                import urllib.request
+                import json     
+                
+                json_dict = [{"invoice_no":"INV00072","percentage_amt_received":"20","outstanding_amt":"400","total_amt":"500"}]
+                json_data = json.dumps(json_dict)
+                post_data = json_data.encode('utf-8')
+                headers = {}
+                headers['Content-Type'] = 'application/json'
+                req = urllib.request.Request(url, post_data, headers)
+                res = urllib.request.urlopen(req)
+                '''
 
 def attach_file_test(html_,path_data):
 	import easywebdav

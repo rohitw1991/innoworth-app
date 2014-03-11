@@ -13,6 +13,22 @@ class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 
+
+	def on_update(self):
+		pass
+		'''
+		import urllib.request
+                import json     
+                
+                json_dict = [{"item_code":self.doc.item_code,"ref_rate":self.doc.ref_rate,"buying_or_selling":self.doc.buying_or_selling,"price_list":self.doc.price_list}]
+                json_data = json.dumps(json_dict)
+                post_data = json_data.encode('utf-8')
+                headers = {}
+                headers['Content-Type'] = 'application/json'
+                req = urllib.request.Request(url, post_data, headers)
+                res = urllib.request.urlopen(req)
+		'''
+
 	def validate(self):
 		self.check_duplicate_item()
 		self.update_price_list_details()

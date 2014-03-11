@@ -1,0 +1,47 @@
+[
+ {
+  "creation": "2014-03-11 20:43:35", 
+  "docstatus": 0, 
+  "modified": "2014-03-11 21:45:41", 
+  "modified_by": "Administrator", 
+  "owner": "administrator"
+ }, 
+ {
+  "autoname": "field:path", 
+  "doctype": "DocType", 
+  "document_type": "Transaction", 
+  "module": "Cgi Module", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "path", 
+  "fieldtype": "Data", 
+  "label": "path", 
+  "name": "__common__", 
+  "parent": "Path", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Path", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "role": "All"
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Path"
+ }, 
+ {
+  "doctype": "DocField"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

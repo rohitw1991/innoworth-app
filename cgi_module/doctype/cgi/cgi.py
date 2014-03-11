@@ -140,11 +140,23 @@ class DocType():
                 si_.grand_total_export=cstr(total_amt)
 		si_.grand_total=cstr(total_amt)
                 si_.rounded_total_export=cstr(total_amt)
-		si_.outstanding_amount=cstr(total_amt)
+		adv=0.00
+		value_out=0.00
+                advance_payment=sql("select credit,parent,name,against_account from `tabJournal Voucher Detail` where account='"+si.debit_to+"' and is_advance='Yes' and credit<>0 and ifnull(against_invoice,'')='' and docstatus=1",as_list=1,debug=1)
+		child_gl=[]
+                if advance_payment:
+			for s in advance_payment:
+                		adv=cstr(flt(adv)+flt(s[0]))
+				update_jv=sql("update `tabJournal Voucher Detail` set against_invoice='"+si.name+"' where name='"+s[2]+"'")
+				child_gl.append({"account":si.debit_to,"debit":"0","credit":cstr(s[0]),"against":s[3],"against_voucher":si.name,"against_voucher_type":"Sales Invoice","voucher_type":"Journal Voucher","voucher_no":s[1],"cost_center":"Main - innow"})
+		si_.outstanding_amount=cstr(flt(total_amt)-flt(adv))
+		value_out=cstr(si_.outstanding_amount)
 		si_.save()
-
-                data=[{"account":si.debit_to,"debit":si_.net_total_export,"credit":"0","against":"Sales - innow","against_voucher_type":"Sales Invoice","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":""},{"account":'Sales - innow',"debit":"0","credit":si_.net_total_export,"against":si.debit_to,"against_voucher_type":"","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":"Main - innow"}]
+		if child_gl:
+			self.create_gl(child_gl)
+                data=[{"against_voucher":si.name,"account":si.debit_to,"debit":cstr(value_out),"credit":"0","against":"Sales - innow","against_voucher_type":"Sales Invoice","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":""},{"against_voucher":"","account":'Sales - innow',"debit":"0","credit":cstr(value_out),"against":si.debit_to,"against_voucher_type":"","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":"Main - innow"}]
                 self.create_gl(data)
+		
 		a=html_data({"posting_date":datetime.datetime.strptime(nowdate(),'%Y-%m-%d').strftime('%d/%m/%Y'),"due_date":datetime.datetime.strptime(nowdate(),'%Y-%m-%d').strftime('%d/%m/%Y'),"customer_name":si.customer_name,"net_total":si_.net_total_export,"grand_total":si_.grand_total_export,"rounded_total":si_.rounded_total_export,"table_data":html,"date_1":"Posting Date","date_2":"Due Date","doctype":"Sales Invoice","doctype_no":si.name,"company":si.company,"addr_name":"","address":"","tax_detail":""})
                 attach_file(a,[si.name,"Account/Kirana","Sales Invoice"])
                 return {"Sales Invoice":si.name}
@@ -173,10 +185,21 @@ class DocType():
                         		si.grand_total_export=cstr(r['grand_total_export'])
 					si.grand_total=cstr(r['grand_total_export'])
                         		si.rounded_total_export=cstr(r['rounded_total_export'])
-					si.outstanding_amount=cstr(r['net_total_export'])
-					si.docstatus=1	
-					update=sql("update `tabSales Order` set per_billed='100' where name='"+cstr(r['name'])+"'")
 					si.save()
+					si=Document("Sales Invoice",si.name)
+					adv=0.00
+					advance_payment=sql("select credit,parent,name,against_account from `tabJournal Voucher Detail` where account='"+si.debit_to+"' and is_advance='Yes' and credit<>0 and ifnull(against_invoice,'')='' and docstatus=1",as_list=1,debug=1)
+			                child_gl=[]
+                			if advance_payment:
+						webnotes.errprint(advance_payment)
+                        			for s in advance_payment:
+                                			adv=cstr(flt(adv)+flt(s[0]))
+                                			update_jv=sql("update `tabJournal Voucher Detail` set against_invoice='"+si.name+"' where name='"+s[2]+"'")
+                                			child_gl.append({"account":si.debit_to,"debit":"0","credit":cstr(s[0]),"against":s[3],"against_voucher":si.name,"against_voucher_type":"Sales Invoice","voucher_type":"Journal Voucher","voucher_no":s[1],"cost_center":"Main - innow"})
+					si.outstanding_amount=cstr(flt(r['net_total_export'])-flt(adv))
+					si.docstatus=1	
+					si.save()
+					update=sql("update `tabSales Order` set per_billed='100' where name='"+cstr(r['name'])+"'")
 					child=sql("select * from `tabSales Order Item` where parent='"+(args['Sales Order No']).strip()+"'",as_dict=1)
 					html=""
 					j=0
@@ -203,9 +226,11 @@ class DocType():
 						html+=("<tr><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'>"+cstr(j)+"</td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'>"+cstr(sic.item_code)+"</td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'>"+cstr(sic.description)+"</td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;text-align:right;'><div>"+cstr(sic.qty)+"</div></td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'>"+cstr(sic.stock_uom)+"</td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'><div style='text-align:right'>₹ "+cstr(sic.ref_rate)+"</div></td><td style='border:1px solid rgb(153, 153, 153);word-wrap: break-word;'><div style='text-align: right'>₹ "+cstr(sic.export_amount)+"</div></td></tr>")
 						update=sql("update `tabSales Order Item` set billed_amt='"+cstr(s['export_amount'])+"' where name='"+cstr(s['name'])+"'")
 						sic.save()
-					data=[{"account":si.debit_to,"debit":si.net_total_export,"credit":"0","against":"Sales - innow","against_voucher_type":"Sales Invoice","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":""},{"account":'Sales - innow',"debit":"0","credit":si.net_total_export,"against":si.debit_to,"against_voucher_type":"","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":"Main - innow"}]
+					if child_gl:
+                        			self.create_gl(child_gl)
+					data=[{"against_voucher":si.name,"account":si.debit_to,"debit":cstr(si.outstanding_amount),"credit":"0","against":"Sales - innow","against_voucher_type":"Sales Invoice","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":""},{"account":'Sales - innow',"debit":"0","credit":cstr(si.outstanding_amount),"against":si.debit_to,"against_voucher_type":"","voucher_type":"Sales Invoice","voucher_no":si.name,"cost_center":"Main - innow","against_voucher":""}]
 					self.create_gl(data)
-					a=html_data({"posting_date":datetime.datetime.strptime(nowdate(),'%Y-%m-%d').strftime('%d/%m/%Y'),"due_date":datetime.datetime.strptime(nowdate(),'%Y-%m-%d').strftime('%d/%m/%Y'),"customer_name":si.customer_name,"net_total":si.net_total_export,"grand_total":si.grand_total_export,"rounded_total":si.rounded_total_export,"table_data":html,"date_1":"Posting Date","date_2":"Due Date","doctype":"Sales Invoice","doctype_no":si.name,"company":si.company,"addr_name":"","address":"","tax_detail":""})
+					a=html_data({"posting_date":datetime.datetime.strptime(nowdate(),'%Y-%m-%d').strftime('%d/%m/%Y'),"due_date":datetime.datetime.strptime(nowdate(),'%Y-%m-%d').strftime('%d/%m/%Y'),"customer_name":si.customer_name,"net_total":cstr(si.net_total_export),"grand_total":cstr(si.grand_total_export),"rounded_total":cstr(si.rounded_total_export),"table_data":html,"date_1":"Posting Date","date_2":"Due Date","doctype":"Sales Invoice","doctype_no":si.name,"company":si.company,"addr_name":"","address":"","tax_detail":""})
                         		attach_file(a,[si.name,"Account/Kirana","Sales Invoice"])
 					return {"Sales Invoice":si.name}
 
@@ -218,6 +243,7 @@ class DocType():
 			gl.against=r['against']
 			gl.against_voucher_type=r['against_voucher_type']
 			gl.voucher_type=r['voucher_type']
+			gl.against_voucher=r['against_voucher']
 			gl.voucher_no=r['voucher_no']
 			gl.cost_center=r['cost_center']
 			gl.posting_date=nowdate()
@@ -514,7 +540,11 @@ class DocType():
 				else:
 					check=sql("select name from tabCustomer where innoworth_id='"+(s['Customer Id']).strip()+"'")
 					if check:
-						return["","Done"]
+						check_item_name=sql("select name from tabItem where name='"+(r['Item Name']).strip()+"'")
+                                                if check_item_name:
+                                                	return ["","Done"]
+                                                else:
+                                                	return ["Item name is not exist","error"]
 					else:
 						return ["Id is not exist","error"]
  
@@ -536,26 +566,26 @@ class DocType():
 
 @webnotes.whitelist()
 def attach_file(a,path_data):
-
+		import easywebdav
                 #path=self.file_name(path_data[0])
                 #html_file= open(path[0],"w")
                 import io
+		html_=a
                 name=path_data[0]
                 path=cstr(path_data[0]).replace("/","")
                 f = io.open("files/"+path+".html", 'w', encoding='utf8')
                 f.write(a)
                 f.close()
-
                 s=auth()
                 if s[0]=="Done":
-			dms_path=webnotes.conn.sql("select value from `tabSingles` where doctype='LDAP Settings' and field='dms_path'",as_list=1)
-			check_status=sql("select file_url from `tabFile Data` where file_url='"+dms_path[0][0]+path_data[1]+"/"+path+".html"+"'",as_list=1)
+			path_name=create_path(nowdate(),path_data[1],s[1])
+			check_status=sql("select file_url from `tabFile Data` where file_url='"+path_name+"/"+path+".html"+"'",as_list=1)
 			if not check_status:
-                        	document_attach("files/"+path+".html",dms_path[0][0]+path_data[1]+"/"+path+".html",s[1],"upload")
+                        	document_attach("files/"+path+".html",path_name+"/"+path+".html",s[1],"upload")
                         	file_attach=Document("File Data")
                         	file_attach.file_name="files/"+path+".html"
                         	file_attach.attached_to_doctype=path_data[2]
-                        	file_attach.file_url=dms_path[0][0]+path_data[1]+"/"+path+".html"
+                        	file_attach.file_url=path_name+"/"+path+".html"
                         	file_attach.attached_to_name=name
                         	file_attach.save()
 				os.remove("files/"+path+".html")
@@ -564,6 +594,19 @@ def attach_file(a,path_data):
 				return "File Already Exist"
                 else:
                         return s[1]
+
+@webnotes.whitelist()
+def create_path(date,path_data,auth_id):
+	dms_path=webnotes.conn.sql("select value from `tabSingles` where doctype='LDAP Settings' and field='dms_path'",as_list=1)
+	check_path=webnotes.conn.sql("select name from tabPath where name='"+dms_path[0][0]+path_data+"/"+date+"'",as_list=1)
+	if check_path:
+		return check_path[0][0]
+	else:
+		p=Document('Path')
+		p.path=cstr(dms_path[0][0]+path_data+"/"+date)
+		p.save()
+		auth_id.mkdir(dms_path[0][0]+path_data+"/"+date)
+		return p.name
 
 @webnotes.whitelist()
 def add_file():

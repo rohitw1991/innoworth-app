@@ -174,6 +174,11 @@ class DocType(BuyingController):
 		self.make_sl_entries(sl_entries)
 
 	def create_dn(self):
+		'''
+		import urllib.request
+                import json
+		json_dict=[]
+		'''
 		dn=Document('Delivery Note')
 		dn.customer=self.doc.customer
 		dn.customer_name=webnotes.conn.get_value("Customer",self.doc.customer,"customer_name")		
@@ -228,8 +233,9 @@ class DocType(BuyingController):
 			stl.qty_after_transaction=cstr(flt(qty[0][0])-flt(s.qty))
 			stl.save()
 			if dni.serial_no:
-				for s in dni.serial_no:
-					update=webnotes.conn.sql("update `tabSerial No` set status='Delivered', warehouse=(select name from tabCustomer where 1=2) where name='"+s+"'")
+				for se in dni.serial_no:
+					update=webnotes.conn.sql("update `tabSerial No` set status='Delivered', warehouse=(select name from tabCustomer where 1=2) where name='"+se+"'")
+					#json_dict.append({"serial_no":se,"supplier_name":self.doc.supplier_name,"item_code":s.item_code})
 
 		dn_=Document("Delivery Note",dn.name)
 		dn_.net_total_export=cstr(net_tot)
@@ -237,6 +243,15 @@ class DocType(BuyingController):
                 dn_.rounded_total_export=cstr(net_tot)
 		a=html_data({"posting_date":datetime.datetime.strptime(nowdate(),'%Y-%m-%d').strftime('%d/%m/%Y'),"due_date":"","customer_name":dn.customer_name,"net_total":dn_.net_total_export,"grand_total":dn_.grand_total_export,"rounded_total":dn_.rounded_total_export,"table_data":html,"date_1":"Posting Date","date_2":"","doctype":"Delivery Note","doctype_no":dn.name,"company":dn.company,"addr_name":"Address","address":dn.address_display,"tax_detail":""})
                 attach_file(a,[dn.name,"Selling/Kirana","Delivery Note"])
+		'''
+		json_data = json.dumps(json_dict)
+                post_data = json_data.encode('utf-8')
+                headers = {}
+                headers['Content-Type'] = 'application/json'
+                req = urllib.request.Request(url, post_data, headers)
+                res = urllib.request.urlopen(req)
+                '''
+		
 				
 	def update_ordered_qty(self):
 		stock_items = self.get_stock_items()

@@ -43,6 +43,19 @@ class DocType(DocListController):
 			self.old_page_name = webnotes.conn.get_value('Item', self.doc.name, 'page_name')
 			
 	def on_update(self):
+		'''
+		import urllib.request
+		import json	
+		
+		json_dict = [{"item_code":self.doc.item_code,"item_name":self.doc.item_name,"item_group":self.doc.item_group,"stock_uom":self.doc.stock_uom}]
+		json_data = json.dumps(json_dict)
+		post_data = json_data.encode('utf-8')
+		headers = {}
+		headers['Content-Type'] = 'application/json'
+		req = urllib.request.Request(url, post_data, headers)
+		res = urllib.request.urlopen(req)
+		'''		
+
 		self.validate_name_with_item_group()
 		self.update_website()
 

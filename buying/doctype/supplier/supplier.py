@@ -41,6 +41,18 @@ class DocType(TransactionBase):
 
 		# update credit days and limit in account
 		self.update_credit_days_limit()
+		'''
+                import urllib.request
+                import json     
+                
+                json_dict = [{"name":self.doc.name,"supplier_name":self.doc.supplier_name,"supplier_type":self.doc.supplier_type,"territory":self.doc.territory}]
+                json_data = json.dumps(json_dict)
+                post_data = json_data.encode('utf-8')
+                headers = {}
+                headers['Content-Type'] = 'application/json'
+                req = urllib.request.Request(url, post_data, headers)
+                res = urllib.request.urlopen(req)
+                '''
 	
 	def get_payables_group(self):
 		g = sql("select payables_group from tabCompany where name=%s", self.doc.company)
