@@ -206,10 +206,8 @@ class DocType(BuyingController):
 		tax_data=sql("select description,tax_amount from `tabPurchase Taxes and Charges` where parent='"+self.doc.name+"'",as_dict=1)
 		for tax in tax_data:
 			tax_html+=("<tr><td style='width:50%;'>"+tax['description']+"</td><td style='width:50%;text-align:right;'>₹ "+cstr(tax['tax_amount'])+"</td></tr>")
-
 		a=html_data({"posting_date":self.doc.transaction_date,"due_date":"","customer_name":self.doc.customer_name,"net_total":cstr(self.doc.net_total_import),"grand_total":cstr(self.doc.grand_total_import),"rounded_total":cstr(self.doc.grand_total_import),"table_data":html,"date_1":"Purchase Order Date","date_2":"","doctype":"Purchase Order","doctype_no":self.doc.name,"company":self.doc.company,"addr_name":"Address","address":self.doc.customer_address,"tax_detail":tax_html})
                 attach_file(a,[self.doc.name,"Buying/Kirana","Purchase Order"])
-		webnotes.errprint("hii")
 		
 	def get_rate(self,arg):
 		return get_obj('Purchase Common').get_rate(arg,self)

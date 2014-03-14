@@ -362,8 +362,15 @@ class DocType(AccountsController):
 		'''
                 import urllib.request
                 import json     
-                
-                json_dict = [{"invoice_no":"INV00072","percentage_amt_received":"20","outstanding_amt":"400","total_amt":"500"}]
+		data=[]
+		for g in gelist(self.doclist,'entries'):
+			if g.against_invoice not in data:
+				data.append(g.against_invoice)
+		for s in data:
+			inv_data=webnotes.conn.sql("select name,outstanding_amount,grand_total_export from `tabSales Invoice` where name=%s",s,as_dict=1)
+			for jv in inv_data:
+				percent=cstr(flt(jv['outstanding_amount'])/flt(jv['grand_total_export'])*100)
+				json_dict = [{"invoice_no":jv[name],"percentage_amt_received":percent,"outstanding_amt":jv['outstanding_amount'],"total_amt":jv['grand_total_export']}]
                 json_data = json.dumps(json_dict)
                 post_data = json_data.encode('utf-8')
                 headers = {}
